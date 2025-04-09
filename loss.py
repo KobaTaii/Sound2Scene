@@ -70,5 +70,28 @@ class InfoNCE_with_L2():
         #total_loss = (self.loss_img(-cdist_per_image, ground_truth) + self.loss_aud(-cdist_per_aud, ground_truth)) / 2
 
 
+        return total_loss
+
+class InfoNCE_with_L2_sound2vision():
+    def __init__(self,device):
+        self.loss_img = nn.CrossEntropyLoss()
+        self.loss_aud = nn.CrossEntropyLoss()
+
+        #self.logit_scale = nn.Parameter(torch.ones([])*np.log(1/0.07))
+        self.logit_scale = nn.Parameter(torch.ones([]) * 1)
+        self.device = device
+
+    def loss_fn(self, audio_features, image_features):
+        try:
+            cdist_per_image = torch.cdist(image_features, audio_features, p=2)*self.logit_scale
+        except:
+            cdist_per_image=torch.cdist(image_features.to(dtype=torch.float64), audio_features.to(dtype=torch.float64), p=2)*self.logit_scale
+        cdist_per_aud = cdist_per_image.t()
+
+        ground_truth = torch.arange(audio_features.shape[0], dtype=torch.long, device=self.device)
+        loss1= self.loss_img(-cdist_per_image, ground_truth)
+        loss2=self.loss_aud(-cdist_per_aud, ground_truth)
+        total_loss = (loss1+loss2)/2
 
         return total_loss
+

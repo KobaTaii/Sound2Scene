@@ -15,6 +15,18 @@ class AVENet(nn.Module):
         # return aud, x, inter
         return aud, x
 
+
+class AVENet_(nn.Module):
+    def __init__(self,args):
+        super(AVENet_, self).__init__()
+        self.audnet = Resnet(args)
+
+    def forward(self, audio):
+        x, aud, inter = self.audnet(audio)
+
+        # return aud, x, inter
+        return aud, x
+
 def Resnet(opt):
 
     assert opt.model_depth in [10, 18, 34, 50, 101, 152, 200]
@@ -23,9 +35,14 @@ def Resnet(opt):
         model = resnet.resnet10(
             num_classes=opt.n_classes)
     elif opt.model_depth == 18:
-        model = resnet.resnet18(
-            num_classes=opt.n_classes,
-            pool=opt.pool)
+        if opt.resnet_type=="fc2":
+            model = resnet.resnet18_(
+                num_classes=opt.n_classes,
+                pool=opt.pool)
+        else:
+            model = resnet.resnet18(
+                num_classes=opt.n_classes,
+                pool=opt.pool)
     elif opt.model_depth == 34:
         model = resnet.resnet34(
             num_classes=opt.n_classes,

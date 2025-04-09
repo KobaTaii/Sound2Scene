@@ -1,7 +1,7 @@
 # Sound2Scene (CVPR 2023) and Sound2Vision (Arxiv 2024)
 
 ### [Project Page](https://sound2scene.github.io/) | [Paper](https://openaccess.thecvf.com/content/CVPR2023/html/Sung-Bin_Sound_to_Visual_Scene_Generation_by_Audio-to-Visual_Latent_Alignment_CVPR_2023_paper.html) | [Extension Paper](https://arxiv.org/abs/2412.06209)
-This repository contains a pytorch implementation for the CVPR 2023 paper (V1), [Sound2Scene: Sound to visual scene generation by audio-to-visual latent alignment](https://openaccess.thecvf.com/content/CVPR2023/html/Sung-Bin_Sound_to_Visual_Scene_Generation_by_Audio-to-Visual_Latent_Alignment_CVPR_2023_paper.html), and its extended paper, [Sound2Vision](https://arxiv.org/abs/2412.06209) (V2). Sound2Scene and Sound2Vision are sound-to-image generative model which is trained solely from unlabeled videos to generate images from sound.<br><br>
+This repository contains a pytorch implementation for the CVPR 2023 paper, [Sound2Scene: Sound to visual scene generation by audio-to-visual latent alignment](https://openaccess.thecvf.com/content/CVPR2023/html/Sung-Bin_Sound_to_Visual_Scene_Generation_by_Audio-to-Visual_Latent_Alignment_CVPR_2023_paper.html) (V1), and its extended paper, [Sound2Vision](https://arxiv.org/abs/2412.06209) (V2). Sound2Scene and Sound2Vision are sound-to-image generative model which is trained solely from unlabeled videos to generate images from sound.<br><br>
 
 ![teaser1](https://github.com/postech-ami/Sound2Scene/assets/59387731/9c1a2d37-38e0-4525-9dc2-74002ee4c2e2)
 
@@ -92,6 +92,63 @@ bash test.sh
 (1) We used off-the-shelf CLIP model (``Vit-B/32'') to evaluate R@k performance.
 
 (2) We trained the [Inception model](https://drive.google.com/file/d/1GbZ25SShTssQ-G5Ynhzsjwz6QkPWWQNm/view?usp=drive_link) on VGGSound for measuring FID and Inception score.
+
+
+## Sound2Vision (Arxiv 2024)
+### Getting started
+This code was developed on Ubuntu 18.04 with Python 3.8, CUDA 11.1 and PyTorch 1.9.1. Later versions should work, but have not been tested.
+
+### Installation 
+Create and activate a virtual environment to work in.
+```
+conda create --name sound2scene python=3.8.8
+conda activate sound2scene
+```
+Install [PyTorch](https://pytorch.org/). For CUDA 11.1, this would look like:
+```
+pip install torch==1.9.1+cu111 torchvision==0.10.1+cu111 torchaudio==0.9.1 -f https://download.pytorch.org/whl/torch_stable.html
+```
+
+Install the remaining requirements with pip:
+```
+pip install -r requirements.txt
+pip install openai-clip==1.0.1
+pip install transformers==4.28.1
+pip install diffusers==0.15.0
+pip install git+https://github.com/wenet-e2e/wespeaker.git
+```
+
+### Download Models
+
+To run Sound2Vision, you need to download Sound2Vision_env, and Sound2Vision_face.
+Sound2Vision_env is the model that is trained on the VGGSound dataset (environmental sound) and Sound2Vision_face is the model that is trained on the CelebV-HQ dataset (face-speech).
+
+Download [Sound2Vision_env](https://drive.google.com/file/d/1npdSAOHINI1MU5I365ylMl151GmmKkxB/view?usp=sharing) | [Sound2Vision_face](https://drive.google.com/file/d/1_klp5z8IWn0eZyh-nqX5KEoQlfLDcVEp/view?usp=sharing)
+
+After downloading the models, place them in ./checkpoints.
+```
+./checkpoints/sound2vision_env.pth
+./checkpoints/sound2vision_face.pth
+```
+
+### Training Sound2Vision
+Run below command to train the model.
+
+We provide sample image and audio pairs in **./samples/training**.
+
+The samples are for checking the training code.
+```
+python train_sound2vision.py --data_path [path containing image and audio pairs] --save_path [path for saving the checkpoints]
+```
+
+### Inference
+```
+#for generating images from environmental sound
+pyton test_sound2vision.py --ckpt_path ./checkpoints/sound2vision_env.pth --wav_path ./samples/inference --output_path ./samples/output --input_data env
+
+#for generating human face images from speech
+pyton test_sound2vision.py --ckpt_path ./checkpoints/sound2vision_face.pth --wav_path ./samples/inference_face --output_path ./samples/output --input_data face
+```
 
 
 ## Citation
