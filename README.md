@@ -3,7 +3,15 @@
 ### [Project Page](https://sound2scene.github.io/) | [Paper](https://openaccess.thecvf.com/content/CVPR2023/html/Sung-Bin_Sound_to_Visual_Scene_Generation_by_Audio-to-Visual_Latent_Alignment_CVPR_2023_paper.html) | [Extension Paper](https://arxiv.org/abs/2412.06209)
 This repository contains a pytorch implementation for the CVPR 2023 paper, [Sound2Scene: Sound to visual scene generation by audio-to-visual latent alignment](https://openaccess.thecvf.com/content/CVPR2023/html/Sung-Bin_Sound_to_Visual_Scene_Generation_by_Audio-to-Visual_Latent_Alignment_CVPR_2023_paper.html) (V1), and its extended paper, [Sound2Vision](https://arxiv.org/abs/2412.06209) (V2). Sound2Scene and Sound2Vision are sound-to-image generative model which is trained solely from unlabeled videos to generate images from sound.<br><br>
 
+#### Results from Sound2Scene (CVPR 2023)
 ![teaser1](https://github.com/postech-ami/Sound2Scene/assets/59387731/9c1a2d37-38e0-4525-9dc2-74002ee4c2e2)
+
+#### Results from Sound2Vision (Arxiv 2024) - environmental sound as an input
+![image](https://github.com/user-attachments/assets/021707bb-0191-449c-a26d-c1b31f464276)
+
+#### Results from Sound2Vision (Arxiv 2024) - speech as an input
+![image](https://github.com/user-attachments/assets/8eeae67a-2cc0-474f-8740-83b411007b00)
+
 
 ## Sound2Scene (CVPR 2023)
 ### Getting started
