@@ -17,6 +17,7 @@ from src.diffusers.pipelines.stable_diffusion.pipeline_stable_unclip_img2img imp
 import wespeaker
 from scipy import signal
 import soundfile as sf
+import numpy as np
 
 class MAPPING(nn.Module):
     def __init__(self):
@@ -84,30 +85,70 @@ def showImage(args,pipe,emb, device):
     return image[0]
 
 
-def audio2spectrogra(wav_file):
-    samples, samplerate = sf.read(wav_file)
+def audio2spectrogra(samples, samplerate):
+    nperseg = 512  # スペクトログラムに必要な最小の長さ
 
-    # repeat in case audio is too short
-    resamples = np.tile(samples, 10)[:160000]
+    # --- ▼▼ ここからが重要な修正 ▼▼ ---
+    # もし入力サンプルの長さが、必要な長さ(512)より短い場合
+    if len(samples) < nperseg:
+        # 512を超えるまで、何回繰り返す必要があるか計算する
+        # 例: lenが20なら、512 // 20 + 1 = 25 + 1 = 26回繰り返す
+        repeats = (nperseg // len(samples)) + 1
+        resamples = np.tile(samples, repeats)
+    else:
+        # 長さが十分な場合は、そのまま使う
+        resamples = samples
+
+    # 元のコードの意図を汲み、長すぎる場合は16万サンプルに制限する
+    resamples = resamples[:160000]
+    # --- ▲▲ ここまでが重要な修正 ▲▲ ---
+
+    # クリッピング処理（これは元のままでOK）
     resamples[resamples > 1.] = 1.
     resamples[resamples < -1.] = -1.
+
+    # これでresamplesは必ず512以上の長さになるため、エラーは発生しない
     frequencies, times, spectrogram = signal.spectrogram(resamples, samplerate, nperseg=512, noverlap=353)
+
     spectrogram = np.log(spectrogram + 1e-7)
     mean = np.mean(spectrogram)
     std = np.std(spectrogram)
     spectrogram = np.divide(spectrogram - mean, std + 1e-9)
 
-    spectrogram =  torch.from_numpy(spectrogram).unsqueeze(0)
+    spectrogram = torch.from_numpy(spectrogram).unsqueeze(0)
     return spectrogram
+
+import os
+import soundfile as sf
+import numpy as np # numpyをインポート
+from torch.autograd import Variable
+
 def test_env(args, model, pipe, device):
     audio_paths = args.wav_path
     save_path = args.out_path
     os.makedirs(save_path, exist_ok=True)
 
-    for audio in os.listdir(audio_paths):
-        audio = os.path.join(audio_paths, audio)
+    for audio_filename in os.listdir(audio_paths):
+        audio = os.path.join(audio_paths, audio_filename)
 
-        spectrogram = audio2spectrogra(audio)
+        try:
+            samples, samplerate = sf.read(audio)
+
+            # --- ▼▼ これが最後の修正です ▼▼ ---
+            # もしデータが2次元（ステレオ）なら、平均をとって1次元（モノラル）に変換
+            if samples.ndim == 2:
+                samples = np.mean(samples, axis=1)
+            # --- ▲▲ ここまで ▲▲ ---
+
+            if len(samples) < 512:
+                print(f"SKIPPING: '{audio_filename}' is too short ({len(samples)} samples).")
+                continue
+        except Exception as e:
+            print(f"SKIPPING: Could not read '{audio_filename}'. Reason: {e}")
+            continue
+
+        spectrogram = audio2spectrogra(samples, samplerate)
+
         spectrogram = Variable(spectrogram).to(device)
         _, emb = model(spectrogram.unsqueeze(1).float())
 
